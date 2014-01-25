@@ -4,6 +4,7 @@ using System.Collections;
 public class Player : MonoBehaviour
 {
     public float speed = 10f;
+	public string type;
 
     private float lastSynchronizationTime = 0f;
     private float syncDelay = 0f;
@@ -51,9 +52,7 @@ public class Player : MonoBehaviour
     {
         if (networkView.isMine)
         {
-
             InputMovement();
-            //sInputColorChange();
         }
         else
         {
@@ -86,16 +85,28 @@ public class Player : MonoBehaviour
 
     void OnCollisionEnter(Collision collide)
     {
-        //if (Input.GetKeyDown(KeyCode.R))
-        ChangeColorTo(new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
+		if (collide.gameObject.tag == "Player") {
+        	ChangeColorTo(new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
+
+		}
     }
 
     [RPC] void ChangeColorTo(Vector3 color)
     {
-        renderer.material.color = new Color(color.x, color.y, color.z, 1f);
+        renderer.material.SetColor("_LineColor", new Color(color.x, color.y, color.z, 1f));
 
-        if (networkView.isMine)
+        if (networkView.isMine) {
             networkView.RPC("ChangeColorTo", RPCMode.OthersBuffered, color);
+			//networkView.RPC("ChangeMesh", RPCMode.OthersBuffered, type);
+		}
     }
+
+	/*[RPC] void ChangeMesh(string type) {
+		if (networkView.isMine) {
+			MeshFilter mesh = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+		}
+	}*/
+
 
 }
