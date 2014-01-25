@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     private float syncTime = 0f;
     private Vector3 syncStartPosition = Vector3.zero;
     private Vector3 syncEndPosition = Vector3.zero;
+	private Camera myCam;
 
     void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
     {
@@ -34,6 +35,10 @@ public class Player : MonoBehaviour
 
             syncEndPosition = syncPosition + syncVelocity * syncDelay;
             syncStartPosition = rigidbody.position;
+
+
+			myCam = gameObject.AddComponent<Camera>();
+			//Camera.current = myCam;
         }
     }
 
@@ -46,8 +51,9 @@ public class Player : MonoBehaviour
     {
         if (networkView.isMine)
         {
+
             InputMovement();
-            InputColorChange();
+            //sInputColorChange();
         }
         else
         {
@@ -78,11 +84,10 @@ public class Player : MonoBehaviour
         rigidbody.position = Vector3.Lerp(syncStartPosition, syncEndPosition, syncTime / syncDelay);
     }
 
-
-    private void InputColorChange()
+    void OnCollisionEnter(Collision collide)
     {
-        if (Input.GetKeyDown(KeyCode.R))
-            ChangeColorTo(new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
+        //if (Input.GetKeyDown(KeyCode.R))
+        ChangeColorTo(new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
     }
 
     [RPC] void ChangeColorTo(Vector3 color)
@@ -92,4 +97,5 @@ public class Player : MonoBehaviour
         if (networkView.isMine)
             networkView.RPC("ChangeColorTo", RPCMode.OthersBuffered, color);
     }
+
 }
