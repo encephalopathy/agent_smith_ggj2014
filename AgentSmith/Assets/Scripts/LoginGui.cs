@@ -3,8 +3,8 @@ using System.Collections;
 
 public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 
-	public enum GUIState { ServerClient, Server, ChooseClient, ConnectWait, Login, Success, Failure, Instruction, Countdown, Finish }
-	public GUIState currentState = GUIState.ServerClient;
+	public enum GUIState { Login, ChooseClient, ConnectWait, Success, Failure, Instruction, Countdown, Finish }
+	public GUIState currentState = GUIState.Login;
 
 	public NetworkManager networkManager = null;
 	public Texture2D leftBracket = null;
@@ -17,31 +17,35 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	private string serverName = null;
 	
 	public void OnConnectToServerSuccess() {
-		Debug.Log("Connected to server!");
-		currentState = GUIState.Success;
+		Debug.Log("Connected to server: " + name);
+		currentState = GUIState.Login;
+	}
+
+	public void OnConnectToServerFail() {
+		Debug.Log("Failed to connect to server");
+		currentState = GUIState.Login;
 	}
 
 	public void OnHostListSuccess(HostData[] hostList) {
 		this.hostList = hostList;
-		currentState = GUIState.ChooseClient;
+
+		if (hostList == null || hostList.Length == 0) {
+			currentState = GUIState.Login;
+		} else {
+			currentState = GUIState.ChooseClient;
+		}
 	}
 
 	public void OnStartServerSuccess(string name) {
 		Debug.Log("Started server: " + name);
 		this.serverName = name;
-		currentState = GUIState.Server;
+		currentState = GUIState.Login;
 	}
 
 	void OnGUI () {
 		GUI.skin.label.alignment = TextAnchor.MiddleCenter;
 
 		switch (currentState) {
-			case GUIState.ServerClient:
-				ChooseServerClient();
-				break;
-			case GUIState.Server:
-				ServerScreen();
-				break;
 			case GUIState.ChooseClient:
 				ChooseClientScreen();
 				break;
@@ -65,7 +69,7 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 				break;	
 		}
 	}
-	
+
 	Rect centerOn (float centerX, float centerY, float width, float height) 
 	{
 		return new Rect(centerX - width / 2, centerY - height / 2, width, height);
@@ -76,54 +80,16 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		GUI.Label ( centerOn (rect.x + rect.width, rect.y + 25, 20, 50), rightBracket);
 	}
 
-	void ChooseServerClient()
-	{
-		float groupWidth = Screen.width * 0.5f;
-		float groupHeight = Screen.height * 0.4f;
-		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
-		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
-
-		if (GUI.Button (centerOn(groupWidth * 0.25f, groupHeight * 0.5f, groupWidth * 0.3f, 25), "Server?")) {
-			currentState = GUIState.ConnectWait;
-			networkManager.TryStartServer(this);
-		}
-
-		if (GUI.Button (centerOn(groupWidth * 0.75f, groupHeight * 0.5f, groupWidth * 0.3f, 25), "Client?")) {
-			currentState = GUIState.ConnectWait;
-			networkManager.TryConnectToServer(this);
-		}
-
-		GUI.EndGroup();
-	}
-
-	void ServerScreen() {
-		float groupWidth = Screen.width * 0.5f;
-		float groupHeight = Screen.height * 0.25f;
-		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
-		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
-		
-		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
-		GUI.Label (textDimensions, "Devoted server name: " + serverName);
-		surroundWithBrackets(textDimensions);
-		GUI.EndGroup();
-	}
-
 	void ChooseClientScreen() {
 		float groupWidth = Screen.width * 0.5f;
 		float groupHeight = Screen.height * 1.0f;
 
-		//scrollViewVector = GUI.BeginScrollView (centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight),
-		//                                        scrollViewVector,
-		//                                        centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, 50 + 25*hostList.Length));
 		for (int i = 0; i < hostList.Length; i++)
 		{
 			if (GUI.Button(centerOn (Screen.width * 0.5f, 25 + 25*i, groupWidth * 0.75f, 25), "Join " + hostList[i].gameName)) {
 				networkManager.JoinServer(hostList[i]);
 			}
 		}
-		
-		// End the ScrollView
-		//GUI.EndScrollView();
 	}
 
 	void WaitScreen() {
@@ -145,18 +111,41 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		
 		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
 		
-		float textWidth = groupWidth * 0.5f;
+		float textWidth = groupWidth * 0.75f;
 		float textHeight = 25;
 
+		string statusMessage = "Choose to play as a\nserver or client first";
+		if (serverName != null) {
+			if (Network.isServer) {
+				statusMessage = "Playing as server " + serverName;
+			} else if (Network.isClient) {
+				statusMessage = "Connected to server " + serverName;
+			}
+		}
+
 		Rect textDimensions = centerOn(groupWidth * 0.5f, groupHeight * 0.33f, textWidth, textHeight * 2);
-		GUI.Label ( textDimensions, "# agents ready\nwaiting for # agents");
+		GUI.Label (textDimensions, statusMessage);
 
 		// Decorate the center text with some fancy brackets.
 		surroundWithBrackets(textDimensions);
-		
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f, textWidth, textHeight), "Login")) {
-			currentState = GUIState.Success;
-			//FB.Init(SetInit, OnHideUnity, null);
+
+		if (Network.isServer || Network.isClient) {
+			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f, textWidth, textHeight), "Login")) {
+				currentState = GUIState.Success;
+				//FB.Init(SetInit, OnHideUnity, null);
+			}
+		}
+		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + textHeight, textWidth, textHeight), "Connect as Server")) {
+			Network.Disconnect();
+			serverName = null;
+			currentState = GUIState.ConnectWait;
+			networkManager.TryStartServer(this);
+		}
+		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Connect as Client / Switch Server")) {
+			Network.Disconnect();
+			serverName = null;
+			currentState = GUIState.ConnectWait;
+			networkManager.TryConnectToServer(this);
 		}
 		
 		GUI.EndGroup();
