@@ -1,12 +1,8 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Player.cs">
+  <MonoDevelop.Ide.Workspace />
+  <MonoDevelop.Ide.Workbench ActiveDocument="..\..\..\GGJ_2014\agent_smith_ggj2014\AgentSmith\Assets\Scripts\Shaders\Wireframe.shader">
     <Files>
-      <File FileName="Assets\Scripts\Player.cs" Line="93" Column="2" />
-      <File FileName="Assets\Scripts\NetworkManager.cs" Line="37" Column="74" />
-      <File FileName="Assets\Scripts\Circle.cs" Line="13" Column="23" />
-      <File FileName="Assets\Scripts\Pyramid.cs" Line="13" Column="24" />
-      <File FileName="Assets\Scripts\Cube.cs" Line="13" Column="28" />
+      <File FileName="..\..\..\GGJ_2014\agent_smith_ggj2014\AgentSmith\Assets\Scripts\Shaders\Wireframe.shader" Line="13" Column="22" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
