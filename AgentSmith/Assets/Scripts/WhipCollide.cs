@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TongueCollide : MonoBehaviour {
+public class WhipCollide : MonoBehaviour {
 
 	public GameObject whipOwner;
 
@@ -16,8 +16,9 @@ public class TongueCollide : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider datCollision){
-		if(datCollision.collider.tag == "Player"){
+		if(datCollision.collider.tag == "Convertable"){
 			whipOwner = this.transform.root.gameObject;
+			Debug.Log(whipOwner);
 		}
 	}
 
