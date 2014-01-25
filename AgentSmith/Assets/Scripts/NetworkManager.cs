@@ -50,4 +50,9 @@ public class NetworkManager : MonoBehaviour
     {
 		onClientConnectSuccessCallback.OnConnectToServerSuccess();
     }
+
+	void OnFailedToConnect(NetworkConnectionError error)
+	{
+		onClientConnectSuccessCallback.OnConnectToServerFail();
+	}
 }
