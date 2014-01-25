@@ -1,19 +1,53 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class LoginGui : MonoBehaviour {
+public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 
-	public enum GUIState { Login, Success, Failure, Instruction, Countdown, Finish }
-	public GUIState currentState = GUIState.Login;
-	
+	public enum GUIState { ServerClient, Server, ChooseClient, ConnectWait, Login, Success, Failure, Instruction, Countdown, Finish }
+	public GUIState currentState = GUIState.ServerClient;
+
+	public NetworkManager networkManager = null;
 	public Texture2D leftBracket = null;
 	public Texture2D rightBracket = null;
 	public Texture2D testTexture = null;
 	
+	private Vector2 scrollViewVector = Vector2.zero;
+
+	private HostData[] hostList = null;
+	private string serverName = null;
+	
+	public void OnConnectToServerSuccess() {
+		Debug.Log("Connected to server!");
+		currentState = GUIState.Success;
+	}
+
+	public void OnHostListSuccess(HostData[] hostList) {
+		this.hostList = hostList;
+		currentState = GUIState.ChooseClient;
+	}
+
+	public void OnStartServerSuccess(string name) {
+		Debug.Log("Started server: " + name);
+		this.serverName = name;
+		currentState = GUIState.Server;
+	}
+
 	void OnGUI () {
 		GUI.skin.label.alignment = TextAnchor.MiddleCenter;
 
 		switch (currentState) {
+			case GUIState.ServerClient:
+				ChooseServerClient();
+				break;
+			case GUIState.Server:
+				ServerScreen();
+				break;
+			case GUIState.ChooseClient:
+				ChooseClientScreen();
+				break;
+			case GUIState.ConnectWait:
+				WaitScreen();
+				break;
 			case GUIState.Login:
 				LoginScreen();
 				break;
@@ -42,12 +76,66 @@ public class LoginGui : MonoBehaviour {
 		GUI.Label ( centerOn (rect.x + rect.width, rect.y + 25, 20, 50), rightBracket);
 	}
 
-	void SetInit () {
-		System.Console.WriteLine("set init");
+	void ChooseServerClient()
+	{
+		float groupWidth = Screen.width * 0.5f;
+		float groupHeight = Screen.height * 0.4f;
+		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
+		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
+
+		if (GUI.Button (centerOn(groupWidth * 0.25f, groupHeight * 0.5f, groupWidth * 0.3f, 25), "Server?")) {
+			currentState = GUIState.ConnectWait;
+			networkManager.TryStartServer(this);
+		}
+
+		if (GUI.Button (centerOn(groupWidth * 0.75f, groupHeight * 0.5f, groupWidth * 0.3f, 25), "Client?")) {
+			currentState = GUIState.ConnectWait;
+			networkManager.TryConnectToServer(this);
+		}
+
+		GUI.EndGroup();
 	}
 
-	void OnHideUnity(bool isGameShown) {
-		System.Console.WriteLine("on hide");
+	void ServerScreen() {
+		float groupWidth = Screen.width * 0.5f;
+		float groupHeight = Screen.height * 0.25f;
+		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
+		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
+		
+		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
+		GUI.Label (textDimensions, "Devoted server name: " + serverName);
+		surroundWithBrackets(textDimensions);
+		GUI.EndGroup();
+	}
+
+	void ChooseClientScreen() {
+		float groupWidth = Screen.width * 0.5f;
+		float groupHeight = Screen.height * 1.0f;
+
+		//scrollViewVector = GUI.BeginScrollView (centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight),
+		//                                        scrollViewVector,
+		//                                        centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, 50 + 25*hostList.Length));
+		for (int i = 0; i < hostList.Length; i++)
+		{
+			if (GUI.Button(centerOn (Screen.width * 0.5f, 25 + 25*i, groupWidth * 0.75f, 25), "Join " + hostList[i].gameName)) {
+				networkManager.JoinServer(hostList[i]);
+			}
+		}
+		
+		// End the ScrollView
+		//GUI.EndScrollView();
+	}
+
+	void WaitScreen() {
+		float groupWidth = Screen.width * 0.5f;
+		float groupHeight = Screen.height * 0.25f;
+		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
+		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
+		
+		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
+		GUI.Label ( textDimensions, "Waiting to connect...");
+		surroundWithBrackets(textDimensions);
+		GUI.EndGroup();
 	}
 
 	void LoginScreen () {		
@@ -148,6 +236,9 @@ public class LoginGui : MonoBehaviour {
 		GUI.Label ( textDimensions, "Waiting on # agents...");
 		surroundWithBrackets(textDimensions);
 		GUI.EndGroup();
+
+		// For now, force countdown
+		Application.LoadLevel(1);
 	}
 
 	void FinishScreen () {

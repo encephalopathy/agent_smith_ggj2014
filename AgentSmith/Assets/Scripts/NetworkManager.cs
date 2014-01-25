@@ -3,79 +3,51 @@ using System.Collections;
 
 public class NetworkManager : MonoBehaviour
 {
-    private const string typeName = "AgentSmith";
-    private const string gameName = "TheMatrix_v";
-
-    private bool isRefreshingHostList = false;
+	private const string typeName = "Agent_GGJ2014";
+	private const string gameNameBase = "AgentSmith_";
+	private string gameName = "DEFAULT";
     private HostData[] hostList;
 
-    public GameObject playerPrefab;
+	private INetworkManagerCallback onClientConnectSuccessCallback;
 
-    void OnGUI()
+	public void TryStartServer(INetworkManagerCallback callbacker)
     {
-        if (!Network.isClient && !Network.isServer)
-        {
-            if (GUI.Button(new Rect(100, 100, 250, 100), "Start Server"))
-                StartServer();
-
-            if (GUI.Button(new Rect(100, 250, 250, 100), "Refresh Hosts"))
-                RefreshHostList();
-
-            if (hostList != null)
-            {
-                for (int i = 0; i < hostList.Length; i++)
-                {
-                    if (GUI.Button(new Rect(400, 100 + (110 * i), 300, 100), hostList[i].gameName))
-                        JoinServer(hostList[i]);
-                }
-            }
-        }
-    }
-
-    private void StartServer()
-    {
-        Network.InitializeServer(5, 25000, !Network.HavePublicAddress());
-        MasterServer.RegisterHost(typeName, gameName + Random.value);
+		onClientConnectSuccessCallback = callbacker;
+		gameName = gameNameBase + Random.value;
+        Network.InitializeServer(4, 25000, !Network.HavePublicAddress());
+		MasterServer.RegisterHost(typeName, gameName);
     }
 
     void OnServerInitialized()
     {
-        SpawnPlayer();
+		onClientConnectSuccessCallback.OnStartServerSuccess(gameName);
     }
 
+	public void TryConnectToServer(INetworkManagerCallback callbacker)
+	{
+		onClientConnectSuccessCallback = callbacker;
+		MasterServer.ClearHostList();
+		MasterServer.RequestHostList(typeName);
+	}
 
-    void Update()
-    {
-        if (isRefreshingHostList && MasterServer.PollHostList().Length > 0)
-        {
-            isRefreshingHostList = false;
-            hostList = MasterServer.PollHostList();
-        }
-    }
+	void OnMasterServerEvent(MasterServerEvent msEvent)
+	{
+		if (msEvent == MasterServerEvent.HostListReceived) {
+			hostList = MasterServer.PollHostList();
 
-    private void RefreshHostList()
-    {
-        if (!isRefreshingHostList)
-        {
-            isRefreshingHostList = true;
-            MasterServer.RequestHostList(typeName);
-        }
-    }
+			if (hostList != null && hostList.Length > 0) {
+				onClientConnectSuccessCallback.OnHostListSuccess(hostList);
+			}
+		}
+	}
 
-
-    private void JoinServer(HostData hostData)
-    {
-        Network.Connect(hostData);
-    }
+	public void JoinServer(HostData hostData)
+	{
+		Network.Connect(hostData);
+	}
 
     void OnConnectedToServer()
     {
-        SpawnPlayer();
-    }
-
-
-    private void SpawnPlayer()
-    {
-        Network.Instantiate(playerPrefab, Vector3.up * 5, Quaternion.identity, 0);
+		onClientConnectSuccessCallback.OnConnectToServerSuccess();
     }
 }
