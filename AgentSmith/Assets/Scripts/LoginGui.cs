@@ -17,7 +17,7 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	private string serverName = null;
 	
 	public void OnConnectToServerSuccess() {
-		Debug.Log("Connected to server: " + name);
+		Debug.Log("Connected to server: " + serverName);
 		currentState = GUIState.Login;
 	}
 
@@ -87,6 +87,8 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		for (int i = 0; i < hostList.Length; i++)
 		{
 			if (GUI.Button(centerOn (Screen.width * 0.5f, 25 + 25*i, groupWidth * 0.75f, 25), "Join " + hostList[i].gameName)) {
+				currentState = GUIState.ConnectWait;
+				serverName = hostList[i].gameName;
 				networkManager.JoinServer(hostList[i]);
 			}
 		}
@@ -115,12 +117,10 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		float textHeight = 25;
 
 		string statusMessage = "Choose to play as a\nserver or client first";
-		if (serverName != null) {
-			if (Network.isServer) {
-				statusMessage = "Playing as server " + serverName;
-			} else if (Network.isClient) {
-				statusMessage = "Connected to server " + serverName;
-			}
+		if (Network.isServer) {
+			statusMessage = "Playing as server " + serverName;
+		} else if (Network.isClient) {
+			statusMessage = "Connected to server " + serverName;
 		}
 
 		Rect textDimensions = centerOn(groupWidth * 0.5f, groupHeight * 0.33f, textWidth, textHeight * 2);
