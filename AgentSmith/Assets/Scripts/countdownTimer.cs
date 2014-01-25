@@ -18,10 +18,14 @@ public class countdownTimer : MonoBehaviour
 		// Update is called once per frame
 		void Update ()
 		{
-				if (active == true && t_currentCount >= 0) {
+				if (t_active == true && t_currentCount >= 0) {
 						t_currentCount = t_timerStart - Time.time;
 						t_spot.text = timeConversions (t_currentCount);
 				}
+		}
+
+		void OnGUI () {
+		GUI.Box (new Rect (0,0,300,50),timeConversions (t_currentCount) );
 		}
 	
 		private string timeConversions (float timeInput)
