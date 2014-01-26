@@ -10,7 +10,6 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	public GUIState currentState = GUIState.Login;
 
 	public NetworkManager networkManager = null;
-	public Object networkSyncerPrefab = null;
 	public Texture2D leftBracket = null;
 	public Texture2D rightBracket = null;
 	public Texture2D testTexture = null;
@@ -198,19 +197,6 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 				}
 			}
 		}
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + textHeight, textWidth, textHeight), "Connect as Server")) {
-			Network.Disconnect();
-			serverName = null;
-			currentState = GUIState.ConnectWait;
-			networkManager.TryStartServer(this);
-		}
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Connect as Client / Switch Server")) {
-			Network.Disconnect();
-			serverName = null;
-			currentState = GUIState.ConnectWait;
-			networkManager.TryConnectToServer(this);
-		}
-		
 		
 		GUI.EndGroup();
 	}
@@ -261,13 +247,8 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 
 		// Player texture!
 		float playerHeight = groupHeight - textDimensions.y - groupHeight * 0.3f;
-<<<<<<< HEAD
-		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, personaTexture.width, personaTexture.height), personaTexture);
-||||||| merged common ancestors
-		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, testTexture.width, testTexture.height), testTexture);
-=======
-		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, testTexture.width, testTexture.height), myTeam.profilePicMaterial.mainTexture);
->>>>>>> Display Facebook login info, Introduce TeamInfo objects for managing teams
+		Texture2D profilePic = (Texture2D) myTeam.profilePicMaterial.mainTexture;
+		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, profilePic.width, profilePic.height), profilePic);
 
 		GUI.Label ( centerOn (groupWidth * 0.5f, groupHeight * 0.7f, textWidth, textHeight * 3.0f),
 		           "We have given you the " + myTeam.tag + " persona.\n" +
@@ -352,8 +333,6 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		GUI.Label ( textDimensions, agentString);
 		surroundWithBrackets(textDimensions);
 		GUI.EndGroup();
-		// For now, force countdown
-		Application.LoadLevel(1);
 	}
 
 	void FinishScreen () {
