@@ -4,6 +4,8 @@ using System.Collections;
 public class Player : MonoBehaviour
 {
     public float speed = 10f;
+	public string type;
+	public GameObject cameraFixPoint = null;
 
     private float lastSynchronizationTime = 0f;
     private float syncDelay = 0f;
@@ -11,6 +13,13 @@ public class Player : MonoBehaviour
     private Vector3 syncStartPosition = Vector3.zero;
     private Vector3 syncEndPosition = Vector3.zero;
 	private Camera myCam;
+
+	void OnNetworkInstantiate(NetworkMessageInfo info){
+		if (networkView.isMine){
+			Camera.main.transform.position = cameraFixPoint.transform.position;
+			Camera.main.transform.parent = transform;
+		}
+	}
 
     void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
     {
@@ -80,22 +89,44 @@ public class Player : MonoBehaviour
     private void SyncedMovement()
     {
         syncTime += Time.deltaTime;
-
         rigidbody.position = Vector3.Lerp(syncStartPosition, syncEndPosition, syncTime / syncDelay);
     }
 
     void OnCollisionEnter(Collision collide)
     {
-        //if (Input.GetKeyDown(KeyCode.R))
-        ChangeColorTo(new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
+		if (collide.gameObject.tag == "Player") {
+        	ChangeColorTo(new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
+		}
     }
 
     [RPC] void ChangeColorTo(Vector3 color)
     {
-        renderer.material.color = new Color(color.x, color.y, color.z, 1f);
+        renderer.material.SetColor("_LineColor", new Color(color.x, color.y, color.z, 1f));
 
-        if (networkView.isMine)
+        if (networkView.isMine) {
             networkView.RPC("ChangeColorTo", RPCMode.OthersBuffered, color);
+			//networkView.RPC("ChangeMesh", RPCMode.OthersBuffered, type);
+		}
     }
+<<<<<<< .mine
 
+
+
+
+
+
+
+
+
+=======
+
+	/*[RPC] void ChangeMesh(string type) {
+		if (networkView.isMine) {
+			MeshFilter mesh = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+		}
+	}*/
+
+
+>>>>>>> .theirs
 }
