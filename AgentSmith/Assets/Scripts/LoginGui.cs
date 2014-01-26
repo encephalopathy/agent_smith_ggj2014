@@ -13,6 +13,13 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	public Texture2D testTexture = null;
 	public Material profileMaterial = null;
 
+	public Texture2D personaTexture = null;
+	public Texture2D differentTexture = null;
+	public Texture2D movementTexture = null;
+	public Texture2D attackAssimulateTexture = null;
+
+	private Vector2 scrollViewVector = Vector2.zero;
+
 	private HostData[] hostList = null;
 	private string serverName = null;
 
@@ -184,6 +191,19 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 				}
 			}
 		}
+		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + textHeight, textWidth, textHeight), "Connect as Server")) {
+			Network.Disconnect();
+			serverName = null;
+			currentState = GUIState.ConnectWait;
+			networkManager.TryStartServer(this);
+		}
+		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Connect as Client / Switch Server")) {
+			Network.Disconnect();
+			serverName = null;
+			currentState = GUIState.ConnectWait;
+			networkManager.TryConnectToServer(this);
+		}
+		
 		
 		GUI.EndGroup();
 	}
@@ -206,7 +226,7 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 
 		// Player texture!
 		float playerHeight = groupHeight - textDimensions.y - groupHeight * 0.3f;
-		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, testTexture.width, testTexture.height), testTexture);
+		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, personaTexture.width, personaTexture.height), personaTexture);
 
 		GUI.Label ( centerOn (groupWidth * 0.5f, groupHeight * 0.7f, textWidth, textHeight * 3.0f),
 		           "We have given you the CIRCLE persona.\n" +
@@ -260,9 +280,9 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		GUI.Label ( centerOn (groupWidth * 0.2f, groupHeight * 0.4f, groupWidth * 0.2f, groupHeight * 0.3f), "Move with WASD\nAttack with SPACE");
 		GUI.Label ( centerOn (groupWidth * 0.2f, groupHeight * 0.65f, groupWidth * 0.4f, groupHeight * 0.3f), "Hit them, and assimilate\nyour foes to your side");
 
-		GUI.Label ( centerOn (groupWidth * 0.65f, groupHeight * 0.15f, groupWidth * 0.7f, groupHeight * 0.3f), testTexture);
-		GUI.Label ( centerOn (groupWidth * 0.65f, groupHeight * 0.4f, groupWidth * 0.7f, groupHeight * 0.3f), testTexture);
-		GUI.Label ( centerOn (groupWidth * 0.65f, groupHeight * 0.65f, groupWidth * 0.7f, groupHeight * 0.3f), testTexture);
+		GUI.Label ( centerOn (groupWidth * 0.65f, groupHeight * 0.15f, groupWidth * 0.7f, groupHeight * 0.3f), differentTexture);
+		GUI.Label ( centerOn (groupWidth * 0.65f, groupHeight * 0.4f, groupWidth * 0.7f, groupHeight * 0.3f), movementTexture);
+		GUI.Label ( centerOn (groupWidth * 0.65f, groupHeight * 0.65f, groupWidth * 0.7f, groupHeight * 0.3f), attackAssimulateTexture);
 
 		GUI.Label ( centerOn (groupWidth * 0.5f, groupHeight * 0.28f, groupWidth * 1f, 20), "_____________________________________________________________________________");
 		GUI.Label ( centerOn (groupWidth * 0.5f, groupHeight * 0.53f, groupWidth * 1f, 20), "_____________________________________________________________________________");
@@ -294,6 +314,20 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		}
 		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
 		GUI.Label ( textDimensions, agentString);
+		surroundWithBrackets(textDimensions);
+		GUI.EndGroup();
+		// For now, force countdown
+		Application.LoadLevel(1);
+	}
+
+	void FinishScreen () {
+		float groupWidth = Screen.width * 0.5f;
+		float groupHeight = Screen.height * 0.25f;
+		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
+		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
+		
+		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
+		GUI.Label ( textDimensions, "Entering in # seconds\nGood luck, Agent Foo");
 		surroundWithBrackets(textDimensions);
 		GUI.EndGroup();
 	}

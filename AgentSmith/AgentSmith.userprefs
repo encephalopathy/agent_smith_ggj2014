@@ -1,8 +1,10 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace />
-  <MonoDevelop.Ide.Workbench ActiveDocument="..\..\..\GGJ_2014\agent_smith_ggj2014\AgentSmith\Assets\Scripts\Shaders\Wireframe.shader">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\GameStart.cs">
     <Files>
-      <File FileName="..\..\..\GGJ_2014\agent_smith_ggj2014\AgentSmith\Assets\Scripts\Shaders\Wireframe.shader" Line="13" Column="22" />
+      <File FileName="Assets\Scripts\NetworkManager.cs" Line="26" Column="1" />
+      <File FileName="Assets\Scripts\LoginGui.cs" Line="176" Column="1" />
+      <File FileName="Assets\Scripts\GameStart.cs" Line="21" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
