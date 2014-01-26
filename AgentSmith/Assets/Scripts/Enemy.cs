@@ -41,9 +41,6 @@ public class Enemy : MonoBehaviour {
 	}
 
 	void OnNetworkInstantiate(NetworkMessageInfo info){
-		if (networkView.isMine){
-			Camera.main.transform.parent = transform;
-		}
 	}
 
 	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
@@ -81,6 +78,7 @@ public class Enemy : MonoBehaviour {
 
 	}
 
+	[EPC]
 	void setBehavior(){
 		if(Application.loadedLevelName == "CheckerPlane"){
 			sideToSide ();
@@ -105,6 +103,7 @@ public class Enemy : MonoBehaviour {
 
 	}
 
+	[EPC]
 	void moveEnemy(){
 		if(sideBySide){	
 			transform.position = Vector3.Lerp(posOne, posTwo, Mathf.PingPong(speed * Time.deltaTime, 0.1f));
@@ -118,6 +117,7 @@ public class Enemy : MonoBehaviour {
 		else if (flee){
 
 		}
+
 	}
 
 	void fleeMove(){

@@ -11,9 +11,14 @@ public class whipControl : MonoBehaviour {
 	{
 		if (networkView.isMine)
 		{
-			if (Input.GetKey(KeyCode.Space)) {
-				animation.Play("whipAnim");
-			}
+
+		}
+	}
+
+	[RPC]
+	void ThrowWhip() {
+		if (Input.GetKey(KeyCode.Space)) {
+			animation.Play("whipAnim");
 		}
 	}
 }
