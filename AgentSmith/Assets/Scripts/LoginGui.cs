@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+
+using Facebook.MiniJSON;
 
 public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 
-	public enum GUIState { Login, ChooseClient, ConnectWait, Success, Failure, Instruction, Countdown }
+	public enum GUIState { Login, ChooseClient, ConnectWait, LoginProcessing, Success, Instruction, Countdown }
 	public GUIState currentState = GUIState.Login;
 
 	public NetworkManager networkManager = null;
@@ -79,11 +82,11 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 			case GUIState.Login:
 				LoginScreen();
 				break;
+			case GUIState.LoginProcessing:
+				LoginProcessingScreen();
+				break;
 			case GUIState.Success:
 				LoginSuccessScreen();
-				break;
-			case GUIState.Failure:
-				LoginFailureScreen();
 				break;
 			case GUIState.Instruction:
 				InstructionScreen();
@@ -169,10 +172,14 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		NetworkSyncer syncer = NetworkSyncer.GetSyncer();
 		if (Network.isServer || Network.isClient) {
 			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f, textWidth, textHeight), "Login")) {
-				currentState = GUIState.Success;
+				currentState = GUIState.LoginProcessing;
+
+				// We logged in?  Great, set our team.
+				TeamInfo[] teams = TeamInfo.GetAllTeams();
+				TeamInfo.SetMyTeam(teams[NetworkSyncer.GetSyncer().GetConnectionOrder()]);
+
 				print("login Clicked");
 				FB.Login("email,name,profilepic", AuthCallback);
-				//FB.Init(SetInit, OnHideUnity, null);
 			}
 			GUI.Label (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Have " + syncer.numConnected + " agents connected");
 		} else {
@@ -207,7 +214,33 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		
 		GUI.EndGroup();
 	}
-	
+
+	void LoginProcessingScreen () {
+		float groupWidth = Screen.width * 0.5f;
+		float groupHeight = Screen.height * 1f;
+		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
+		
+		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
+		
+		float textWidth = groupWidth * 0.5f;
+		float textHeight = 25;
+
+		if (!FB.IsLoggedIn) {
+			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue Without FB")) {
+				FB.Logout();
+				print("User is logged out");
+				currentState = GUIState.Success;
+			}
+		} else {
+			// Our auth processing will move us to the Success state.
+			print("User is logged in user:"+FB.UserId);
+			// Grab our local team object for our syncer.
+			currentState = GUIState.Success;
+		}
+
+		GUI.EndGroup();
+	}
+
 	void LoginSuccessScreen () {
 		float groupWidth = Screen.width * 0.5f;
 		float groupHeight = Screen.height * 1f;
@@ -217,54 +250,57 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		
 		float textWidth = groupWidth * 0.5f;
 		float textHeight = 25;
+
+		TeamInfo myTeam = TeamInfo.GetMyTeam();
 		
 		Rect textDimensions = centerOn(groupWidth * 0.5f, groupHeight * 0.15f, textWidth, textHeight * 2);
-		GUI.Label ( textDimensions, "WELCOME\nAgent Foo Bar Baz");
+		GUI.Label ( textDimensions, "WELCOME\n Agent " + myTeam.profileName);
 		
 		// Decorate the center text with some fancy brackets.
 		surroundWithBrackets(textDimensions);
 
 		// Player texture!
 		float playerHeight = groupHeight - textDimensions.y - groupHeight * 0.3f;
+<<<<<<< HEAD
 		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, personaTexture.width, personaTexture.height), personaTexture);
+||||||| merged common ancestors
+		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, testTexture.width, testTexture.height), testTexture);
+=======
+		GUI.Label ( centerOn (groupWidth * 0.5f, textDimensions.y + playerHeight * 0.5f, testTexture.width, testTexture.height), myTeam.profilePicMaterial.mainTexture);
+>>>>>>> Display Facebook login info, Introduce TeamInfo objects for managing teams
 
 		GUI.Label ( centerOn (groupWidth * 0.5f, groupHeight * 0.7f, textWidth, textHeight * 3.0f),
-		           "We have given you the CIRCLE persona.\n" +
+		           "We have given you the " + myTeam.tag + " persona.\n" +
 		           "Your mission is to turn those who are not you into how you see yourself.");
 
-		if (!FB.IsLoggedIn) {
-			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue")) {
-				currentState = GUIState.Instruction;
-				FB.Logout();
-				print("User is logged out");
-			}
-		} else {
+		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue")) {
 			currentState = GUIState.Instruction;
-			print("User is logged in user:"+FB.UserId);
 		}
 
 		GUI.EndGroup();
 	}
-	
-	void LoginFailureScreen () {
+
+	void GetUserDataCallback(FBResult response) {
+		Dictionary<string,object> dict = (Dictionary<string,object>)Json.Deserialize(response.Text);
+
+		WWW url = new WWW("https" + "://graph.facebook.com/" + FB.UserId + "/picture?type=large");
+		Texture2D textFb2 = new Texture2D(128, 128, TextureFormat.DXT1, false); //TextureFormat must be DXT5
 		
+		// Fill in the details for our team.
+		TeamInfo myTeam = TeamInfo.GetMyTeam();
+		myTeam.profileName = (string)dict["name"];
+		myTeam.profilePicMaterial.mainTexture = textFb2;
+		url.LoadImageIntoTexture(textFb2);
 	}
 
 	void AuthCallback(FBResult result) {//FBResult result
 		if(FB.IsLoggedIn) {    
 			print("User is logged in userid:"+FB.UserId);
-			//FB.API("me?fields=id,name,picture", Facebook.HttpMethod.GET, GetUserData);
-			WWW url = new WWW("https" + "://graph.facebook.com/" + FB.UserId + "/picture?type=large"); //+ "?access_token=" + FB.AccessToken);
-        	Texture2D textFb2 = new Texture2D(128, 128, TextureFormat.DXT1, false); //TextureFormat must be DXT5
-        	profileMaterial.mainTexture = textFb2;
-        	url.LoadImageIntoTexture(textFb2);
-        	//yield return url;
-        	print(url);
+			FB.API("me?fields=name", Facebook.HttpMethod.GET, GetUserDataCallback);
 		} else {
 			print("User cancelled login");
 		}
 	}
-
 	
 	void InstructionScreen () {
 		float groupWidth = Screen.width * 0.5f;

@@ -66,6 +66,7 @@
      <Compile Include="Assets\Scripts\Enemy.cs" />
      <Compile Include="Assets\Scripts\GameStart.cs" />
      <Compile Include="Assets\Scripts\INetworkManagerCallback.cs" />
+     <Compile Include="Assets\Scripts\LocalData.cs" />
      <Compile Include="Assets\Scripts\LoginGui.cs" />
      <Compile Include="Assets\Scripts\NetworkManager.cs" />
      <Compile Include="Assets\Scripts\NetworkSyncer.cs" />
@@ -74,6 +75,7 @@
      <Compile Include="Assets\Scripts\Pyramid.cs" />
      <Compile Include="Assets\Scripts\SoundScripts\SoundManager.cs" />
      <Compile Include="Assets\Scripts\SoundScripts\test.cs" />
+     <Compile Include="Assets\Scripts\TeamInfo.cs" />
      <Compile Include="Assets\Scripts\WhipCollide.cs" />
      <Compile Include="Assets\Scripts\countdownTimer.cs" />
      <Compile Include="Assets\Scripts\simpleAI.cs" />

@@ -21,7 +21,6 @@ public class NetworkManager : MonoBehaviour
 
     void OnServerInitialized()
     {
-		// Create a server-based object that will keep track of everyone connected to it.
 		Destroy(GameObject.Find("NetworkSyncer(Clone)"));
 		Network.Instantiate(networkSyncerPrefab, transform.position, transform.rotation, 0);
 		onClientConnectSuccessCallback.OnStartServerSuccess(gameName);

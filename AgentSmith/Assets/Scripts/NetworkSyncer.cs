@@ -7,6 +7,8 @@ public class NetworkSyncer : MonoBehaviour {
 	public int numConnected = 0;
 	public int numReady = 0;
 	public int numSynced = 0;
+	
+	public int connectionOrder = -1;
 
 	public static NetworkSyncer GetSyncer() {
 		GameObject obj = GameObject.Find("NetworkSyncer(Clone)");
@@ -14,6 +16,10 @@ public class NetworkSyncer : MonoBehaviour {
 			return obj.GetComponent<NetworkSyncer>();
 		}
 		return null;
+	}
+
+	public int GetConnectionOrder() {
+		return connectionOrder;
 	}
 
 	public void sync() {
@@ -42,7 +48,7 @@ public class NetworkSyncer : MonoBehaviour {
 
 	void OnNetworkInstantiate(NetworkMessageInfo info) {
 		Debug.Log("New syncer instantiated by " + info.sender);
-		networkView.RPC("AddNewClient", RPCMode.AllBuffered);
+		networkView.RPC("AddNewClient", RPCMode.AllBuffered, numConnected);
 	}
 
 	[RPC]
@@ -61,7 +67,11 @@ public class NetworkSyncer : MonoBehaviour {
 	}
 
 	[RPC]
-	void AddNewClient() {
+	void AddNewClient(int numLastConnected) {
+		if (numLastConnected > connectionOrder) {
+			connectionOrder = numLastConnected;
+		}
+		Debug.Log("Added new client! " + connectionOrder);
 		++numConnected;
 	}
 
