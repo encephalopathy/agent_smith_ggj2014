@@ -11,11 +11,23 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	public Texture2D leftBracket = null;
 	public Texture2D rightBracket = null;
 	public Texture2D testTexture = null;
-	
-	private Vector2 scrollViewVector = Vector2.zero;
+	public Material profileMaterial = null;
 
 	private HostData[] hostList = null;
 	private string serverName = null;
+
+	private bool isInit = false;
+	private void CallFBInit() {
+		FB.Init(OnInitComplete, OnHideUnity);
+	}
+
+	private void OnHideUnity(bool unused) {
+	}
+
+	private void SetInit(FBResult response) {
+		print("Response:"+response);
+		isInit = FB.IsLoggedIn;
+	}
 
 	public void OnConnectToServerSuccess() {
 		Debug.Log("Connected to server: " + serverName);
@@ -41,6 +53,10 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		Debug.Log("Started server: " + name);
 		this.serverName = name;
 		currentState = GUIState.Login;
+	}
+
+	public void GetUserData(FBResult response) {
+		print(response);
 	}
 
 	void OnGUI () {
@@ -76,9 +92,22 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		return new Rect(centerX - width / 2, centerY - height / 2, width, height);
 	}
 
+	void Start () {
+		CallFBInit();
+	}
+
 	void surroundWithBrackets (Rect rect) {
 		GUI.Label ( centerOn (rect.x, rect.y + 25, 20, 50), leftBracket);
 		GUI.Label ( centerOn (rect.x + rect.width, rect.y + 25, 20, 50), rightBracket);
+	}
+
+	void OnInitComplete() {
+		isInit = FB.IsLoggedIn;
+		if(FB.IsLoggedIn) {
+			print("FB.Init completed: Is user logged in? " + FB.IsLoggedIn);
+		} else {
+			print("User is not Logged in");
+		}
 	}
 
 	void ChooseClientScreen() {
@@ -134,6 +163,8 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		if (Network.isServer || Network.isClient) {
 			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f, textWidth, textHeight), "Login")) {
 				currentState = GUIState.Success;
+				print("login Clicked");
+				FB.Login("email,name,profilepic", AuthCallback);
 				//FB.Init(SetInit, OnHideUnity, null);
 			}
 			GUI.Label (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Have " + syncer.numConnected + " agents connected");
@@ -181,17 +212,39 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		           "We have given you the CIRCLE persona.\n" +
 		           "Your mission is to turn those who are not you into how you see yourself.");
 
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue")) {
+		if (!FB.IsLoggedIn) {
+			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue")) {
+				currentState = GUIState.Instruction;
+				FB.Logout();
+				print("User is logged out");
+			}
+		} else {
 			currentState = GUIState.Instruction;
-			//FB.Init(SetInit, OnHideUnity, null);
+			print("User is logged in user:"+FB.UserId);
 		}
-		
+
 		GUI.EndGroup();
 	}
 	
 	void LoginFailureScreen () {
 		
 	}
+
+	void AuthCallback(FBResult result) {//FBResult result
+		if(FB.IsLoggedIn) {    
+			print("User is logged in userid:"+FB.UserId);
+			//FB.API("me?fields=id,name,picture", Facebook.HttpMethod.GET, GetUserData);
+			WWW url = new WWW("https" + "://graph.facebook.com/" + FB.UserId + "/picture?type=large"); //+ "?access_token=" + FB.AccessToken);
+        	Texture2D textFb2 = new Texture2D(128, 128, TextureFormat.DXT1, false); //TextureFormat must be DXT5
+        	profileMaterial.mainTexture = textFb2;
+        	url.LoadImageIntoTexture(textFb2);
+        	//yield return url;
+        	print(url);
+		} else {
+			print("User cancelled login");
+		}
+	}
+
 	
 	void InstructionScreen () {
 		float groupWidth = Screen.width * 0.5f;

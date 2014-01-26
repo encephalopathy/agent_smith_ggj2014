@@ -108,17 +108,6 @@ public class Player : MonoBehaviour
 			//networkView.RPC("ChangeMesh", RPCMode.OthersBuffered, type);
 		}
     }
-<<<<<<< .mine
-
-
-
-
-
-
-
-
-
-=======
 
 	/*[RPC] void ChangeMesh(string type) {
 		if (networkView.isMine) {
@@ -126,7 +115,4 @@ public class Player : MonoBehaviour
 
 		}
 	}*/
-
-
->>>>>>> .theirs
 }
