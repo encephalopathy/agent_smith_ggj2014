@@ -39,10 +39,10 @@
 	<Reference Include="System.Core" />
 	<Reference Include="System.Xml.Linq" />
 	<Reference Include="UnityEngine">
-	  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
+	  <HintPath>D:/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
 	</Reference>
 	<Reference Include="UnityEditor">
-	  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
+	  <HintPath>D:/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +76,7 @@
      <Compile Include="Assets\Scripts\SoundScripts\test.cs" />
      <Compile Include="Assets\Scripts\WhipCollide.cs" />
      <Compile Include="Assets\Scripts\countdownTimer.cs" />
+     <Compile Include="Assets\Scripts\simpleAI.cs" />
      <Compile Include="Assets\Scripts\whipControl.cs" />
      <None Include="Assets\Standard Assets\Projectors\Guidelines.txt" />
      <None Include="Assets\Plugins\Android\facebook\res\values\attrs.xml" />
