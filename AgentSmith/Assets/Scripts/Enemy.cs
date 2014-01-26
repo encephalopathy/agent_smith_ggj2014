@@ -17,30 +17,33 @@ public class Enemy : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-
+		/*
 		sideBySide = false;
 		circle = false;
 		swarm = false;
 		standStill = false;
 		flee = false;
-
+*/
 		while (numOfEnemies < 30){
-			GameObject.Instantiate(this, transform.position + new Vector3(Random.Range(5.0f,10.0f),0,Random.Range(5.0f,10.0f)),transform.rotation);
+			GameObject.Instantiate(GameObject.Find("NeutralCreepCylinder"), transform.position + new Vector3(Random.Range(5.0f,10.0f),0,Random.Range(5.0f,10.0f)),transform.rotation);
 			numOfEnemies++;
 		}
 
-		setBehavior();
+		//setBehavior();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (networkView.isMine)
+	/*	if (networkView.isMine)
 		{
 			moveEnemy();
-		}
+		}*/
 	}
-
+	/*
 	void OnNetworkInstantiate(NetworkMessageInfo info){
+		if (networkView.isMine){
+			Camera.main.transform.parent = transform;
+		}
 	}
 
 	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
@@ -78,7 +81,6 @@ public class Enemy : MonoBehaviour {
 
 	}
 
-	[EPC]
 	void setBehavior(){
 		if(Application.loadedLevelName == "CheckerPlane"){
 			sideToSide ();
@@ -103,7 +105,6 @@ public class Enemy : MonoBehaviour {
 
 	}
 
-	[EPC]
 	void moveEnemy(){
 		if(sideBySide){	
 			transform.position = Vector3.Lerp(posOne, posTwo, Mathf.PingPong(speed * Time.deltaTime, 0.1f));
@@ -117,7 +118,6 @@ public class Enemy : MonoBehaviour {
 		else if (flee){
 
 		}
-
 	}
 
 	void fleeMove(){
@@ -127,5 +127,5 @@ public class Enemy : MonoBehaviour {
 	void swarmMove(){
 
 	}
-
+*/
 }

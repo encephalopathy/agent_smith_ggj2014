@@ -13,7 +13,6 @@ public class WhipCollide : MonoBehaviour {
 	
 	}
 
-	[RPC]
  	void OnTriggerEnter(Collider datCollision){
 		if(datCollision.collider.tag == "Convertable"){
 			Mesh whipOwnerMesh = transform.root.GetComponent<MeshFilter>().mesh;
@@ -22,6 +21,9 @@ public class WhipCollide : MonoBehaviour {
 			if (collidedObjectMeshFilter.mesh != whipOwnerMesh) {
 				collidedObjectMeshFilter.mesh = whipOwnerMesh;
 				datCollision.name= transform.root.name;
+
+				//GameObject gObject = new GameObject("TempAudio");
+				SoundManager.Instance.PlaySoundAndLight(gameObject, SoundManager.Action.HIT);
 
 			}
 		}
