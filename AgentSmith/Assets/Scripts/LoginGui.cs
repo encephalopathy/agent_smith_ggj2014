@@ -3,10 +3,11 @@ using System.Collections;
 
 public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 
-	public enum GUIState { Login, ChooseClient, ConnectWait, Success, Failure, Instruction, Countdown, Finish }
+	public enum GUIState { Login, ChooseClient, ConnectWait, Success, Failure, Instruction, Countdown }
 	public GUIState currentState = GUIState.Login;
 
 	public NetworkManager networkManager = null;
+	public Object networkSyncerPrefab = null;
 	public Texture2D leftBracket = null;
 	public Texture2D rightBracket = null;
 	public Texture2D testTexture = null;
@@ -15,7 +16,7 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 
 	private HostData[] hostList = null;
 	private string serverName = null;
-	
+
 	public void OnConnectToServerSuccess() {
 		Debug.Log("Connected to server: " + serverName);
 		currentState = GUIState.Login;
@@ -129,23 +130,28 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		// Decorate the center text with some fancy brackets.
 		surroundWithBrackets(textDimensions);
 
+		NetworkSyncer syncer = NetworkSyncer.GetSyncer();
 		if (Network.isServer || Network.isClient) {
 			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f, textWidth, textHeight), "Login")) {
 				currentState = GUIState.Success;
 				//FB.Init(SetInit, OnHideUnity, null);
 			}
-		}
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + textHeight, textWidth, textHeight), "Connect as Server")) {
-			Network.Disconnect();
-			serverName = null;
-			currentState = GUIState.ConnectWait;
-			networkManager.TryStartServer(this);
-		}
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Connect as Client / Switch Server")) {
-			Network.Disconnect();
-			serverName = null;
-			currentState = GUIState.ConnectWait;
-			networkManager.TryConnectToServer(this);
+			GUI.Label (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Have " + syncer.numConnected + " agents connected");
+		} else {
+			if (syncer == null || syncer.numConnected < syncer.maxPlayers) {
+				if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + textHeight, textWidth, textHeight), "Connect as Server")) {
+					Network.Disconnect();
+					serverName = null;
+					currentState = GUIState.ConnectWait;
+					networkManager.TryStartServer(this);
+				}
+				if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Connect as Client / Switch Server")) {
+					Network.Disconnect();
+					serverName = null;
+					currentState = GUIState.ConnectWait;
+					networkManager.TryConnectToServer(this);
+				}
+			}
 		}
 		
 		GUI.EndGroup();
@@ -210,6 +216,7 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	
 		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue")) {
 			currentState = GUIState.Countdown;
+			NetworkSyncer.GetSyncer().amReady();
 		}
 		
 		GUI.EndGroup();	
@@ -221,23 +228,19 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
 		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
 
+		string agentString = "Waiting on 1 agent...";
+		NetworkSyncer syncer = NetworkSyncer.GetSyncer();
+		if (syncer != null) {
+			if (syncer.numReady < syncer.maxPlayers) {
+				agentString = "Have " + syncer.numReady + " agents, waiting for " + syncer.maxPlayers;
+			} else if (syncer.numReady >= syncer.maxPlayers) {
+				if (Network.isServer) {
+					syncer.finishIntro();
+				}
+			}
+		}
 		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
-		GUI.Label ( textDimensions, "Waiting on # agents...");
-		surroundWithBrackets(textDimensions);
-		GUI.EndGroup();
-
-		// For now, force countdown
-		Application.LoadLevel(1);
-	}
-
-	void FinishScreen () {
-		float groupWidth = Screen.width * 0.5f;
-		float groupHeight = Screen.height * 0.25f;
-		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
-		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
-		
-		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
-		GUI.Label ( textDimensions, "Entering in # seconds\nGood luck, Agent Foo");
+		GUI.Label ( textDimensions, agentString);
 		surroundWithBrackets(textDimensions);
 		GUI.EndGroup();
 	}
