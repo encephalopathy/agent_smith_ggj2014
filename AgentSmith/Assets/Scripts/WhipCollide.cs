@@ -20,7 +20,7 @@ public class WhipCollide : MonoBehaviour {
 
 			if (collidedObjectMeshFilter.mesh != whipOwnerMesh) {
 				collidedObjectMeshFilter.mesh = whipOwnerMesh;
-
+				datCollision.name= transform.root.name;
 
 			}
 		}
