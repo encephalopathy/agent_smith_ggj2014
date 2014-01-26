@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class SoundManager : MonoBehaviour {
@@ -81,7 +81,9 @@ public class SoundManager : MonoBehaviour {
 		//particle effect
 
 		//Transform 
-		Instantiate(myEffect[0], gObject.transform.position, Quaternion.identity);
+		Instantiate(myEffect[effectVal], gObject.transform.position, Quaternion.identity);
+	
+
 		//
 
 		//gObject.particleEmitter.emit 
@@ -103,7 +105,7 @@ public class SoundManager : MonoBehaviour {
 	//if(!audio.isPlaying)
 	//playRandomMusic();
 	
-	private  void playRandomMusic()
+	private void playRandomMusic()
 	{
 		int rnd = Random.Range (0, myMusic.Length);
 		audio.clip = myMusic[rnd];
