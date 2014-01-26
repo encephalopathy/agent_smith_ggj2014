@@ -108,10 +108,11 @@ public class simpleAI : MonoBehaviour
 				navigation.SetDestination (hunted.transform.position);
 		if (Vector3.Distance (transform.position, hunted.transform.position) <= 50) {
 						GetComponentInChildren<Animation> ().Play ("whipAnim");
+			SoundManager.Instance.PlaySoundAndLight(gameObject, SoundManager.Action.HIT);
 				}
 		}
 
-		IEnumerable Cooldown () {
+		IEnumerator Cooldown () {
 		//This doesn't work. T_T
 			waiting = true;
 			yield return new WaitForSeconds(10f);

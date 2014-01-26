@@ -22,6 +22,9 @@ public class WhipCollide : MonoBehaviour {
 				collidedObjectMeshFilter.mesh = whipOwnerMesh;
 				datCollision.name= transform.root.name;
 
+				//GameObject gObject = new GameObject("TempAudio");
+				SoundManager.Instance.PlaySoundAndLight(gameObject, SoundManager.Action.HIT);
+
 			}
 		}
 	}
