@@ -5,6 +5,7 @@ public class Player : MonoBehaviour
 {
     public float speed = 10f;
 	public string type;
+	public GameObject cameraFixPoint = null;
 
     private float lastSynchronizationTime = 0f;
     private float syncDelay = 0f;
@@ -12,6 +13,13 @@ public class Player : MonoBehaviour
     private Vector3 syncStartPosition = Vector3.zero;
     private Vector3 syncEndPosition = Vector3.zero;
 	private Camera myCam;
+
+	void OnNetworkInstantiate(NetworkMessageInfo info){
+		if (networkView.isMine){
+			Camera.main.transform.position = cameraFixPoint.transform.position;
+			Camera.main.transform.parent = transform;
+		}
+	}
 
     void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
     {
@@ -52,7 +60,9 @@ public class Player : MonoBehaviour
     {
         if (networkView.isMine)
         {
+
             InputMovement();
+            //sInputColorChange();
         }
         else
         {
@@ -79,7 +89,6 @@ public class Player : MonoBehaviour
     private void SyncedMovement()
     {
         syncTime += Time.deltaTime;
-
         rigidbody.position = Vector3.Lerp(syncStartPosition, syncEndPosition, syncTime / syncDelay);
     }
 
@@ -87,7 +96,6 @@ public class Player : MonoBehaviour
     {
 		if (collide.gameObject.tag == "Player") {
         	ChangeColorTo(new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
-
 		}
     }
 
@@ -107,6 +115,4 @@ public class Player : MonoBehaviour
 
 		}
 	}*/
-
-
 }

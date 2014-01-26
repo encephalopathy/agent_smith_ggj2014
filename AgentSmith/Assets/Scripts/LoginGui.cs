@@ -3,19 +3,32 @@ using System.Collections;
 
 public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 
-	public enum GUIState { Login, ChooseClient, ConnectWait, Success, Failure, Instruction, Countdown, Finish }
+	public enum GUIState { Login, ChooseClient, ConnectWait, Success, Failure, Instruction, Countdown }
 	public GUIState currentState = GUIState.Login;
 
 	public NetworkManager networkManager = null;
+	public Object networkSyncerPrefab = null;
 	public Texture2D leftBracket = null;
 	public Texture2D rightBracket = null;
 	public Texture2D testTexture = null;
-	
-	private Vector2 scrollViewVector = Vector2.zero;
+	public Material profileMaterial = null;
 
 	private HostData[] hostList = null;
 	private string serverName = null;
-	
+
+	private bool isInit = false;
+	private void CallFBInit() {
+		FB.Init(OnInitComplete, OnHideUnity);
+	}
+
+	private void OnHideUnity(bool unused) {
+	}
+
+	private void SetInit(FBResult response) {
+		print("Response:"+response);
+		isInit = FB.IsLoggedIn;
+	}
+
 	public void OnConnectToServerSuccess() {
 		Debug.Log("Connected to server: " + serverName);
 		currentState = GUIState.Login;
@@ -40,6 +53,10 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		Debug.Log("Started server: " + name);
 		this.serverName = name;
 		currentState = GUIState.Login;
+	}
+
+	public void GetUserData(FBResult response) {
+		print(response);
 	}
 
 	void OnGUI () {
@@ -75,9 +92,22 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		return new Rect(centerX - width / 2, centerY - height / 2, width, height);
 	}
 
+	void Start () {
+		CallFBInit();
+	}
+
 	void surroundWithBrackets (Rect rect) {
 		GUI.Label ( centerOn (rect.x, rect.y + 25, 20, 50), leftBracket);
 		GUI.Label ( centerOn (rect.x + rect.width, rect.y + 25, 20, 50), rightBracket);
+	}
+
+	void OnInitComplete() {
+		isInit = FB.IsLoggedIn;
+		if(FB.IsLoggedIn) {
+			print("FB.Init completed: Is user logged in? " + FB.IsLoggedIn);
+		} else {
+			print("User is not Logged in");
+		}
 	}
 
 	void ChooseClientScreen() {
@@ -129,23 +159,30 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		// Decorate the center text with some fancy brackets.
 		surroundWithBrackets(textDimensions);
 
+		NetworkSyncer syncer = NetworkSyncer.GetSyncer();
 		if (Network.isServer || Network.isClient) {
 			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f, textWidth, textHeight), "Login")) {
 				currentState = GUIState.Success;
+				print("login Clicked");
+				FB.Login("email,name,profilepic", AuthCallback);
 				//FB.Init(SetInit, OnHideUnity, null);
 			}
-		}
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + textHeight, textWidth, textHeight), "Connect as Server")) {
-			Network.Disconnect();
-			serverName = null;
-			currentState = GUIState.ConnectWait;
-			networkManager.TryStartServer(this);
-		}
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Connect as Client / Switch Server")) {
-			Network.Disconnect();
-			serverName = null;
-			currentState = GUIState.ConnectWait;
-			networkManager.TryConnectToServer(this);
+			GUI.Label (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Have " + syncer.numConnected + " agents connected");
+		} else {
+			if (syncer == null || syncer.numConnected < syncer.maxPlayers) {
+				if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + textHeight, textWidth, textHeight), "Connect as Server")) {
+					Network.Disconnect();
+					serverName = null;
+					currentState = GUIState.ConnectWait;
+					networkManager.TryStartServer(this);
+				}
+				if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.66f + 2*textHeight, textWidth, textHeight), "Connect as Client / Switch Server")) {
+					Network.Disconnect();
+					serverName = null;
+					currentState = GUIState.ConnectWait;
+					networkManager.TryConnectToServer(this);
+				}
+			}
 		}
 		
 		GUI.EndGroup();
@@ -175,17 +212,39 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		           "We have given you the CIRCLE persona.\n" +
 		           "Your mission is to turn those who are not you into how you see yourself.");
 
-		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue")) {
+		if (!FB.IsLoggedIn) {
+			if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue")) {
+				currentState = GUIState.Instruction;
+				FB.Logout();
+				print("User is logged out");
+			}
+		} else {
 			currentState = GUIState.Instruction;
-			//FB.Init(SetInit, OnHideUnity, null);
+			print("User is logged in user:"+FB.UserId);
 		}
-		
+
 		GUI.EndGroup();
 	}
 	
 	void LoginFailureScreen () {
 		
 	}
+
+	void AuthCallback(FBResult result) {//FBResult result
+		if(FB.IsLoggedIn) {    
+			print("User is logged in userid:"+FB.UserId);
+			//FB.API("me?fields=id,name,picture", Facebook.HttpMethod.GET, GetUserData);
+			WWW url = new WWW("https" + "://graph.facebook.com/" + FB.UserId + "/picture?type=large"); //+ "?access_token=" + FB.AccessToken);
+        	Texture2D textFb2 = new Texture2D(128, 128, TextureFormat.DXT1, false); //TextureFormat must be DXT5
+        	profileMaterial.mainTexture = textFb2;
+        	url.LoadImageIntoTexture(textFb2);
+        	//yield return url;
+        	print(url);
+		} else {
+			print("User cancelled login");
+		}
+	}
+
 	
 	void InstructionScreen () {
 		float groupWidth = Screen.width * 0.5f;
@@ -210,6 +269,7 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	
 		if (GUI.Button (centerOn(groupWidth * 0.5f, groupHeight * 0.85f, textWidth, textHeight), "Continue")) {
 			currentState = GUIState.Countdown;
+			NetworkSyncer.GetSyncer().amReady();
 		}
 		
 		GUI.EndGroup();	
@@ -221,23 +281,19 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
 		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
 
+		string agentString = "Waiting on 1 agent...";
+		NetworkSyncer syncer = NetworkSyncer.GetSyncer();
+		if (syncer != null) {
+			if (syncer.numReady < syncer.maxPlayers) {
+				agentString = "Have " + syncer.numReady + " agents, waiting for " + syncer.maxPlayers;
+			} else if (syncer.numReady >= syncer.maxPlayers) {
+				if (Network.isServer) {
+					syncer.finishIntro();
+				}
+			}
+		}
 		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
-		GUI.Label ( textDimensions, "Waiting on # agents...");
-		surroundWithBrackets(textDimensions);
-		GUI.EndGroup();
-
-		// For now, force countdown
-		Application.LoadLevel(1);
-	}
-
-	void FinishScreen () {
-		float groupWidth = Screen.width * 0.5f;
-		float groupHeight = Screen.height * 0.25f;
-		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.5f, groupWidth, groupHeight));
-		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
-		
-		Rect textDimensions = centerOn (groupWidth * 0.5f, groupHeight * 0.5f, groupWidth * 0.5f, 50);
-		GUI.Label ( textDimensions, "Entering in # seconds\nGood luck, Agent Foo");
+		GUI.Label ( textDimensions, agentString);
 		surroundWithBrackets(textDimensions);
 		GUI.EndGroup();
 	}
