@@ -10,6 +10,7 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	public GUIState currentState = GUIState.Login;
 
 	public NetworkManager networkManager = null;
+    public Texture2D gameLogo = null;
 	public Texture2D leftBracket = null;
 	public Texture2D rightBracket = null;
 	public Texture2D testTexture = null;
@@ -148,6 +149,9 @@ public class LoginGui : MonoBehaviour, INetworkManagerCallback {
 	void LoginScreen () {		
 		float groupWidth = Screen.width * 0.5f;
 		float groupHeight = Screen.height * 0.4f;
+
+        GUI.Label(centerOn(Screen.width * 0.5f, Screen.height * 0.3f, Screen.width * 0.6f, groupHeight*1.4f),gameLogo);
+
 		GUI.BeginGroup(centerOn(Screen.width * 0.5f, Screen.height * 0.75f, groupWidth, groupHeight));
 		
 		GUI.Box (new Rect(0, 0, groupWidth, groupHeight), "");
