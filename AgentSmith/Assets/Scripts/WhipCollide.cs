@@ -3,8 +3,6 @@ using System.Collections;
 
 public class WhipCollide : MonoBehaviour {
 
-	public GameObject whipOwner;
-
 	// Use this for initialization
 	void Start () {
 	
@@ -15,11 +13,16 @@ public class WhipCollide : MonoBehaviour {
 	
 	}
 
-	void OnTriggerEnter(Collider datCollision){
+ 	void OnTriggerEnter(Collider datCollision){
 		if(datCollision.collider.tag == "Convertable"){
-			whipOwner = this.transform.root.gameObject;
-			Debug.Log(whipOwner);
+			Mesh whipOwnerMesh = transform.root.GetComponent<MeshFilter>().mesh;
+			MeshFilter collidedObjectMeshFilter = datCollision.GetComponent<MeshFilter>();
+
+			if (collidedObjectMeshFilter.mesh != whipOwnerMesh) {
+				collidedObjectMeshFilter.mesh = whipOwnerMesh;
+
+
+			}
 		}
 	}
-
 }
