@@ -1,7 +1,29 @@
-/*.unityproj
-/*.sln
-/*.userprefs
-/*.csproj
-/*.pidb
-AgentSmith/Library
-/Temp
+# Unity3D .gitignore file.
+# Store this file at the root of your local repository.
+.DS_Store
+Library/AssetImportState
+Library/AssetServerCacheV3
+Library/FailedAssetImports.txt
+Library/ScriptAssemblies
+Library/ScriptMapper
+Library/assetDatabase3
+Library/cache
+Library/expandedItems
+Library/metadata
+Library/previews
+Library/guidmapper
+Temp
+*.csproj
+*.pidb
+*.sln
+AgentSmith/Library/AssetImportState
+AgentSmith/Library/AssetServerCacheV3
+AgentSmith/Library/FailedAssetImports.txt
+AgentSmith/Library/ScriptAssemblies
+AgentSmith/Library/ScriptMapper
+AgentSmith/Library/assetDatabase3
+AgentSmith/Library/cache
+AgentSmith/Library/expandedItems
+AgentSmith/Library/metadata
+AgentSmith/Library/previews
+AgentSmith/Library/guidmapper

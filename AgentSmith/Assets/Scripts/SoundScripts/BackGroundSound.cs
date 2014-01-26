@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class BackGroundMusic : MonoBehaviour {
+public class BackGroundSound : MonoBehaviour {
 	public AudioClip[] myMusic;
 	// Use this for initialization
 	void Start () {
