@@ -7,7 +7,7 @@ public class GameStart : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		Network.Instantiate(PlayerPrefab, Vector3.up * 5, Quaternion.identity, 0);
+		Network.Instantiate(PlayerPrefab, Vector3.up, Quaternion.identity, 0);
 	}
 	
 	// Update is called once per frame
